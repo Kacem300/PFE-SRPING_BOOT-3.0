@@ -29,4 +29,11 @@ public class CommentController {
         return commentService.getAllComments();
     }
 
+
+    @GetMapping("/getCommentsForProduct")
+    public List<Comment> getCommentsForProduct(@RequestParam Integer productId) {
+        return commentService.getCommentsForProduct(productId);
+    }
+
 }
+

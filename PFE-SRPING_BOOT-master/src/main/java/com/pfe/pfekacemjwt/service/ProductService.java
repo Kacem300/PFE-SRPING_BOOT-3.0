@@ -1,23 +1,17 @@
 package com.pfe.pfekacemjwt.service;
 
 import com.pfe.pfekacemjwt.configuration.jwtRequestFilter;
-import com.pfe.pfekacemjwt.dao.CartDao;
-import com.pfe.pfekacemjwt.dao.OrderDao;
-import com.pfe.pfekacemjwt.dao.ProductDao;
-import com.pfe.pfekacemjwt.dao.UserDao;
-import com.pfe.pfekacemjwt.entitiy.Cart;
-import com.pfe.pfekacemjwt.entitiy.Product;
-import com.pfe.pfekacemjwt.entitiy.ProductSize;
-import com.pfe.pfekacemjwt.entitiy.User;
+import com.pfe.pfekacemjwt.dao.*;
+import com.pfe.pfekacemjwt.entitiy.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,8 +28,18 @@ public class ProductService {
 
     @Autowired
     private CartDao cartDao;
+    @Autowired
+    private ProductSizeDao productSizeDao;
+    @Autowired
+    private  RatingDao ratingDao;
+    @Autowired
+    private categoryDao categoryDao;
+    @Autowired
+    private GroupsDao groupsDao;
 
-
+    public Product addNewProduct(Product product) {
+        return productDao.save(product);
+    }
 
     public List<Product> getRandomProducts(int numberOfProducts) {
         List<Product> allProducts = (List<Product>) productDao.findAll();
@@ -43,34 +47,28 @@ public class ProductService {
         return allProducts.stream().limit(numberOfProducts).collect(Collectors.toList());
     }
 
-//    public Product addNewProduct(Product product, Set<ProductSize> productSizes) {
-//        product.setProductSizes(productSizes);
-//        return productDao.save(product);
-//    }
 
-
-    public Product addNewProduct(Product product) {
-        return productDao.save(product);
-    }
 
     public List<Product> getAllProducts(int pageNumber,String keySearch) {
         Pageable pageable = PageRequest.of(pageNumber, 4);
+        List<Product> products;
         if(keySearch.isEmpty()){
-            return (List<Product>) productDao.findAll(pageable);
-
+            products = (List<Product>) productDao.findAll(pageable);
         }else {
-            return (List<Product>) productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch,keySearch,pageable);
+            products = (List<Product>) productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch,keySearch,pageable);
         }
+        products.forEach(product -> product.getProductSizes().size()); // force initialization
+        return products;
     }
+
+
 
     public Product getProductID(Integer productId) {
         return productDao.findById(productId).get();
     }
-
     public void deleteProductDetails(Integer productId) {
         productDao.deleteById(productId);
     }
-
 
     public List<Product> getProductDetails(boolean single, Integer productId) {
         if (single && productId != 0) {
@@ -90,4 +88,61 @@ public class ProductService {
 
         }
     }
+
+
+    public productCategory getCategoryById(Integer productCategoryId) {return categoryDao.findById(productCategoryId).get();}
+
+    public void deleteProductCategory(Integer productCategoryId) {
+
+        categoryDao.deleteById(productCategoryId);
+    }
+
+
+
+    public Double getAverageRating(Product product) {
+        List<Rating> ratings = ratingDao.findByProduct(product);
+        return ratings.stream().mapToInt(Rating::getRating).average().orElse(0.0);
+    }
+
+    public Rating saveRating(Rating rating) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUser = authentication.getName();
+        User user = userDao.findById(currentUser).get();
+        Rating existingRating = ratingDao.findByUserAndProduct(user, rating.getProduct());
+
+        if (existingRating != null) {
+            // If a rating from the same user for the same product already exists,
+            // update the existing rating instead of creating a new one
+            existingRating.setRating(rating.getRating());
+            return ratingDao.save(existingRating);
+        } else {
+            // If no such rating exists, proceed as before
+            rating.setUser(user);
+            return ratingDao.save(rating);
+        }
+    }
+    public Integer getUserRatingForProduct(Product product) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUser = authentication.getName();
+        User user = userDao.findById(currentUser).get();
+        Rating rating = ratingDao.findByUserAndProduct(user, product);
+        return rating.getRating();
+    }
+    public List<productCategory> getCategories(){
+        return categoryDao.findAll();
+    }
+    public List<ProductGroups> getGroups(){
+        return groupsDao.findAll();
+    }
+
+    public productCategory addCategory(productCategory category){
+        return categoryDao.save(category);
+    }
+
+    public ProductGroups addGroup(ProductGroups groups){
+        return groupsDao.save(groups);
+    }
+
+
+
 }

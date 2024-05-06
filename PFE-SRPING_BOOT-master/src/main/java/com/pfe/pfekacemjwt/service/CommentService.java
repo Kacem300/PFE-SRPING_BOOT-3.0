@@ -39,6 +39,10 @@ public class CommentService {
     }
 
 
+    public List<Comment> getCommentsForProduct(Integer productId) {
+        Product product = productDao.findById(productId).orElseThrow(() -> new RuntimeException("Product not found"));
+        return CommentDao.findByProduct(product);
+    }
 
 
     public List<Comment> getAllComments() {

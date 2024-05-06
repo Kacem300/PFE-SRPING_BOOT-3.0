@@ -24,24 +24,7 @@ public class CartService {
     @Autowired
     private UserDao userDao;
 
-    //    public Cart addToCart(Integer productId) {
-//        Product product = productDao.findById(productId).get();
-//
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String username = authentication.getName();
-//
-//        User user = null;
-//        if(username != null) {
-//            user = userDao.findById(username).get();
-//        }
-//
-//        if(product != null && user != null) {
-//            Cart cart = new Cart(product, user);
-//            return cartDao.save(cart);
-//        }
-//
-//        return null;
-//    }
+
     public List<Cart> addToCart(List<Integer> productIds) {
         List<Cart> carts = new ArrayList<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

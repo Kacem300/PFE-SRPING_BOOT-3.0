@@ -16,9 +16,10 @@ public class OrderDetail {
     private String OrderFullName;
     private String OrderFullOrder;
     private String orderContactNumber;
-    private String orderAlternateContactNumber;
+    private Integer orderQuantity;
     private String orderStatus;
     private Double orderAmount;
+
 
     private Date orderDate;
     @ManyToOne
@@ -28,15 +29,23 @@ public class OrderDetail {
 
 
 
-    public OrderDetail(String orderFullName, String orderFullOrder, String orderContactNumber, String orderAlternateContactNumber, String orderStatus, Double orderAmount, Product product, User user) {
+    public OrderDetail(String orderFullName, String orderFullOrder, String orderContactNumber, Integer  orderQuantity , String orderStatus, Double orderAmount, Product product, User user) {
         OrderFullName = orderFullName;
         OrderFullOrder = orderFullOrder;
         this.orderContactNumber = orderContactNumber;
-        this.orderAlternateContactNumber = orderAlternateContactNumber;
+        this.orderQuantity = orderQuantity;
         this.orderStatus = orderStatus;
         this.orderAmount = orderAmount;
         this.product = product;
         this.user = user;
+    }
+
+    public Integer getOrderQuantity() {
+        return orderQuantity;
+    }
+
+    public void setOrderQuantity(Integer orderQuantity) {
+        this.orderQuantity = orderQuantity;
     }
 
     public Date getOrderDate() {
@@ -79,13 +88,13 @@ public class OrderDetail {
         this.orderContactNumber = orderContactNumber;
     }
 
-    public String getOrderAlternateContactNumber() {
-        return orderAlternateContactNumber;
-    }
-
-    public void setOrderAlternateContactNumber(String orderAlternateContactNumber) {
-        this.orderAlternateContactNumber = orderAlternateContactNumber;
-    }
+//    public String getOrderAlternateContactNumber() {
+//        return orderAlternateContactNumber;
+//    }
+//
+//    public void setOrderAlternateContactNumber(String orderAlternateContactNumber) {
+//        this.orderAlternateContactNumber = orderAlternateContactNumber;
+//    }
 
     public String getOrderStatus() {
         return orderStatus;

@@ -1,10 +1,7 @@
 package com.pfe.pfekacemjwt.service;
 
 
-import com.pfe.pfekacemjwt.dao.CartDao;
-import com.pfe.pfekacemjwt.dao.OrderDao;
-import com.pfe.pfekacemjwt.dao.ProductDao;
-import com.pfe.pfekacemjwt.dao.UserDao;
+import com.pfe.pfekacemjwt.dao.*;
 import com.pfe.pfekacemjwt.entitiy.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -31,8 +28,8 @@ public class OrderDetailsService {
     private UserDao userDao;
     @Autowired
     private CartDao cartDao;
-
-
+    @Autowired
+    private ProductSizeDao productSizeDao;
 
 
     public void placeOrder(OrderInput orderInput, boolean isSingleProductCheckout) {
@@ -40,6 +37,20 @@ public class OrderDetailsService {
 
         for (OrderQuantity o: productQuantityList) {
             Product product = productDao.findById(o.getProductId()).get();
+
+
+            // Find the corresponding ProductSize entity and decrease its quantity
+            ProductSize productSize = product.getProductSizes().stream()
+                    .filter(ps -> ps.getProductSizeId().equals(o.getProductSizeId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Product size not found"));
+
+            int newQuantity = productSize.getQuantity() - o.getQuantity();
+            if (newQuantity < 0) {
+                throw new IllegalArgumentException("Not enough stock for product " + product.getProductId());
+            }
+            productSize.setQuantity(newQuantity);
+            productSizeDao.save(productSize); // Assuming you have a DAO for ProductSize
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String currentUser = authentication.getName();
@@ -49,12 +60,11 @@ public class OrderDetailsService {
                     orderInput.getFullName(),
                     orderInput.getFullAddress(),
                     orderInput.getContactNumber(),
-                    orderInput.getAlternateContactNumber(),
+                    o.getQuantity(),
                     Order_status,
                     product.getProductDiscountprice() * o.getQuantity(),
                     product,
                     user
-//                    orderInput.getTransactionId()
             );
             orderDetail.setOrderDate(new Date());
 
@@ -67,6 +77,40 @@ public class OrderDetailsService {
             orderDao.save(orderDetail);
         }
     }
+
+//    public void placeOrder(OrderInput orderInput, boolean isSingleProductCheckout) {
+//        List<OrderQuantity> productQuantityList = orderInput.getOrderQuantities();
+//
+//        for (OrderQuantity o: productQuantityList) {
+//            Product product = productDao.findById(o.getProductId()).get();
+//
+//
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//            String currentUser = authentication.getName();
+//            User user = userDao.findById(currentUser).get();
+//
+//            OrderDetail orderDetail = new OrderDetail(
+//                    orderInput.getFullName(),
+//                    orderInput.getFullAddress(),
+//                    orderInput.getContactNumber(),
+//                    o.getQuantity(),
+//                    Order_status,
+//                    product.getProductDiscountprice() * o.getQuantity(),
+//                    product,
+//                    user
+//
+//            );
+//            orderDetail.setOrderDate(new Date());
+//
+//            // empty the cart.
+//            if(!isSingleProductCheckout) {
+//                List<Cart> carts = cartDao.findByUser(user);
+//                carts.stream().forEach(x -> cartDao.deleteById(x.getCartId()));
+//            }
+//
+//            orderDao.save(orderDetail);
+//        }
+//    }
 
     public List<OrderDetail> getOrderDetails() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

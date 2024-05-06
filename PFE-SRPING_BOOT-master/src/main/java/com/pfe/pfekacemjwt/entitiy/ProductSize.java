@@ -3,45 +3,35 @@ import jakarta.persistence.*;
 
 
 
+
 @Entity
 public class ProductSize {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
-    private Long id;
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
-    @ManyToOne
-    @JoinColumn(name = "size_id")
-    private Size size;
+    private Integer ProductSizeId;
+    private String size;
     private Integer quantity;
 
 
 
-    public Long getId() {
-        return id;
+    public ProductSize() {
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public Size getSize() {
+    public String getSize() {
         return size;
     }
 
-    public void setSize(Size size) {
+    public void setSize(String size) {
         this.size = size;
     }
+
+//    public Integer getSize() {
+//        return size;
+//    }
+//
+//    public void setSize(Integer size) {
+//        this.size = size;
+//    }
 
     public Integer getQuantity() {
         return quantity;
@@ -50,4 +40,15 @@ public class ProductSize {
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
+
+    public Integer getProductSizeId() {
+        return ProductSizeId;
+    }
+
+    public void setProductSizeId(Integer productSizeId) {
+        ProductSizeId = productSizeId;
+    }
+
+
 }
+

@@ -12,7 +12,7 @@ public class Product {
     private String productDescription;
     private Double productDiscountprice;
     private Double productActualprice;
-    private Integer productNote;
+
     @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
     @JoinTable(name = "product_images",
             joinColumns = {
@@ -23,18 +23,58 @@ public class Product {
             }
     )
     private Set<imageModel> productImages;
-//    @OneToMany(mappedBy = "product")
-//    private Set<ProductSize> productSizes;
+
+    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    @JoinTable(name = "product_Sizequantity",
+            joinColumns = {
+                    @JoinColumn(name = "product_id")
+            },
+            inverseJoinColumns = {
+                    @JoinColumn (name = "ProductSizeId")
+            }
+    )
+    private Set<ProductSize> productSizes;
+
+    @ManyToOne
+    @JoinColumn(name = "product_Category_Id")
+    private productCategory productCategory;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "product_productGroups",
+            joinColumns = {
+                    @JoinColumn(name = "product_id")
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "productGroups_id")
+            }
+    )
+    private Set<ProductGroups> productGroups;
+
+    public Set<ProductGroups> getProductGroups() {
+        return productGroups;
+    }
+
+    public void setProductGroups(Set<ProductGroups> productGroups) {
+        this.productGroups = productGroups;
+    }
+
+    public com.pfe.pfekacemjwt.entitiy.productCategory getProductCategory() {
+        return productCategory;
+    }
+
+    public void setProductCategory(com.pfe.pfekacemjwt.entitiy.productCategory productCategory) {
+        this.productCategory = productCategory;
+    }
 
 
+    public Set<ProductSize> getProductSizes() {
+        return productSizes;
+    }
 
-//    public Set<ProductSize> getProductSizes() {
-//        return productSizes;
-//    }
-//
-//    public void setProductSizes(Set<ProductSize> productSizes) {
-//        this.productSizes = productSizes;
-//    }
+    public void setProductSizes(Set<ProductSize> productSizes) {
+        this.productSizes = productSizes;
+    }
+
 
     public Set<imageModel> getProductImages() {
         return productImages;
@@ -84,11 +124,5 @@ public class Product {
         this.productActualprice = productActualprice;
     }
 
-    public Integer getProductNote() {
-        return productNote;
-    }
 
-    public void setProductNote(Integer productNote) {
-        this.productNote = productNote;
-    }
 }

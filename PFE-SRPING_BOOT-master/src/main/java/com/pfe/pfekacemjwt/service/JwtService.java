@@ -53,20 +53,41 @@ public class JwtService implements UserDetailsService {
         }
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userDao.findById(username).get();
+//    @Override
+//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+//        User user = userDao.findById(username).get();
+//
+//        if (user != null) {
+//            return new org.springframework.security.core.userdetails.User(
+//                    user.getUserName(),
+//                    user.getUserPassword(),
+//                    getAuthority(user)
+//            );
+//        } else {
+//            throw new UsernameNotFoundException("User not found with username: " + username);
+//        }
+//    }
+@Override
+public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    User user = userDao.findById(username).get();
 
-        if (user != null) {
-            return new org.springframework.security.core.userdetails.User(
-                    user.getUserName(),
-                    user.getUserPassword(),
-                    getAuthority(user)
-            );
-        } else {
-            throw new UsernameNotFoundException("User not found with username: " + username);
-        }
+    if (user == null) {
+        throw new UsernameNotFoundException("User not found with username: " + username);
     }
+
+    // Check if the user is enabled
+    if (!user.getEnabled()) {
+        throw new DisabledException("User is not enabled");
+    }
+
+    return new org.springframework.security.core.userdetails.User(
+            user.getUserName(),
+            user.getUserPassword(),
+            getAuthority(user)
+    );
+}
+
+
     public JwtResponse createJwtToken(JwtRequest jwtRequest)throws Exception{
         String userName = jwtRequest.getUserName();
         String userPassword = jwtRequest.getUserPassword();

@@ -6,7 +6,7 @@ public class OrderInput {
     private String fullName;
     private String fullAddress;
     private String contactNumber;
-    private String alternateContactNumber;
+//    private String alternateContactNumber;
     private List<OrderQuantity> orderQuantities;
 
     public String getFullName() {
@@ -33,13 +33,13 @@ public class OrderInput {
         this.contactNumber = contactNumber;
     }
 
-    public String getAlternateContactNumber() {
-        return alternateContactNumber;
-    }
-
-    public void setAlternateContactNumber(String alternateContactNumber) {
-        this.alternateContactNumber = alternateContactNumber;
-    }
+//    public String getAlternateContactNumber() {
+//        return alternateContactNumber;
+//    }
+//
+//    public void setAlternateContactNumber(String alternateContactNumber) {
+//        this.alternateContactNumber = alternateContactNumber;
+//    }
 
     public List<OrderQuantity> getOrderQuantities() {
         return orderQuantities;

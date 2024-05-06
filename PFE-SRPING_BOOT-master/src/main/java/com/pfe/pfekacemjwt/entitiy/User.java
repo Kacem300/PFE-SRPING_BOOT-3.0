@@ -3,6 +3,8 @@ package com.pfe.pfekacemjwt.entitiy;
 
 import jakarta.persistence.*;
 
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -13,6 +15,8 @@ public class User {
     private String userFirstName;
     private String userLastname;
     private String userPassword;
+    private Date RegistrationDate;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "USER_ROLE",
             joinColumns = {
@@ -22,7 +26,9 @@ public class User {
                     @JoinColumn(name="ROLE_ID")
             }
     )
-    private Set<Role> role;
+   private Set<Role> role;
+
+
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_images",
@@ -35,7 +41,15 @@ public class User {
     )
     private Set<imageModel> userImages;
 
+    private Boolean enabled;
 
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
 //    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 //    @JoinColumn(name = "userImage")
 //    private imageModel userImage;
@@ -95,5 +109,13 @@ public class User {
 
     public void setRole(Set<Role> role) {
         this.role = role;
+    }
+
+    public Date getRegistrationDate() {
+        return RegistrationDate;
+    }
+
+    public void setRegistrationDate(Date orderDate) {
+        this.RegistrationDate = orderDate;
     }
 }
