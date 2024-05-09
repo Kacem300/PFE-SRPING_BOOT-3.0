@@ -91,13 +91,26 @@ public class ProductService {
 
 
     public productCategory getCategoryById(Integer productCategoryId) {return categoryDao.findById(productCategoryId).get();}
-
+    public productCategory addCategory(productCategory category){
+        return categoryDao.save(category);
+    }
     public void deleteProductCategory(Integer productCategoryId) {
 
         categoryDao.deleteById(productCategoryId);
     }
 
+    public List<productCategory> getCategories(){
+        return categoryDao.findAll();
+    }
+    public List<ProductGroups> getGroups(){
+        return groupsDao.findAll();
+    }
 
+
+
+    public ProductGroups addGroup(ProductGroups groups){
+        return groupsDao.save(groups);
+    }
 
     public Double getAverageRating(Product product) {
         List<Rating> ratings = ratingDao.findByProduct(product);
@@ -111,12 +124,11 @@ public class ProductService {
         Rating existingRating = ratingDao.findByUserAndProduct(user, rating.getProduct());
 
         if (existingRating != null) {
-            // If a rating from the same user for the same product already exists,
-            // update the existing rating instead of creating a new one
+
             existingRating.setRating(rating.getRating());
             return ratingDao.save(existingRating);
         } else {
-            // If no such rating exists, proceed as before
+
             rating.setUser(user);
             return ratingDao.save(rating);
         }
@@ -128,20 +140,7 @@ public class ProductService {
         Rating rating = ratingDao.findByUserAndProduct(user, product);
         return rating.getRating();
     }
-    public List<productCategory> getCategories(){
-        return categoryDao.findAll();
-    }
-    public List<ProductGroups> getGroups(){
-        return groupsDao.findAll();
-    }
 
-    public productCategory addCategory(productCategory category){
-        return categoryDao.save(category);
-    }
-
-    public ProductGroups addGroup(ProductGroups groups){
-        return groupsDao.save(groups);
-    }
 
 
 

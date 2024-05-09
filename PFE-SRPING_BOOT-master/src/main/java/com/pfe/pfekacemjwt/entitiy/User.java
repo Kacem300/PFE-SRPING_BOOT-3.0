@@ -30,16 +30,9 @@ public class User {
 
 
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinTable(name = "user_images",
-            joinColumns = {
-                    @JoinColumn(name = "user_id")
-            },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "image_id")
-            }
-    )
-    private Set<imageModel> userImages;
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "userImage")
+    private imageModel userImage;
 
     private Boolean enabled;
 
@@ -55,12 +48,12 @@ public class User {
 //    private imageModel userImage;
 
 
-    public Set<imageModel> getUserImages() {
-        return userImages;
+    public imageModel getUserImage() {
+        return userImage;
     }
 
-    public void setUserImages(Set<imageModel> userImages) {
-        this.userImages = userImages;
+    public void setUserImage(imageModel userImage) {
+        this.userImage = userImage;
     }
 
     public String getUserEmail() {

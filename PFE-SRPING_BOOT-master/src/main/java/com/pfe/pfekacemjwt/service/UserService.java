@@ -41,7 +41,7 @@ public class UserService {
         roles.add(role);
         user.setRole(roles);
         user.setUserPassword(getEncodedPassword(user.getUserPassword()));
-        user.setUserImages(null);
+        user.setUserImage(null);
         user.setEnabled(false);
         User savedUser = userDao.save(user);
 
@@ -87,12 +87,12 @@ public class UserService {
         user.setUserFirstName("kacem");
         user.setUserLastname("benbrahim");
         user.setUserName("kacem300");
-        user.setUserEmail("gmailtest");
+        user.setUserEmail("kacem.benbrahim@gmail.com");
         user.setUserPassword(getEncodedPassword("kacem@pass"));
         Set<Role> userRoles = new HashSet<>();
         userRoles.add(userRole);
         user.setRole(userRoles);
-        user.setUserImages(null);
+        user.setUserImage(null);
         user.setEnabled(true);
         user.setRegistrationDate(new Date());
 //        Path path = Paths.get("path/to/your/image.jpg");
@@ -124,7 +124,7 @@ public class UserService {
         user.setUserLastname(updatedUser.getUserLastname());
         user.setUserEmail(updatedUser.getUserEmail());
         user.setUserPassword(updatedUser.getUserPassword());
-        user.setUserImages(updatedUser.getUserImages());
+        user.setUserImage(updatedUser.getUserImage());
         user.setRole(updatedUser.getRole());
 
         return userDao.save(user);
@@ -180,6 +180,18 @@ public Long getTotalUserCount() {
     // Return the total number of non-admin users
     return (long) users.size();
 }
+    public List<User> getAllUsers() {
+        // Get all users
+        List<User> users = userDao.findAll();
+
+        // Filter out admin users
+        users = users.stream()
+                .filter(user -> user.getRole().stream().noneMatch(role -> role.getRolename().equals("Admin")))
+                .collect(Collectors.toList());
+
+        return users;
+    }
+
 
 
 

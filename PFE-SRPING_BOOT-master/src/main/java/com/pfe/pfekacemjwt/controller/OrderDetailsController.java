@@ -3,6 +3,7 @@ package com.pfe.pfekacemjwt.controller;
 import com.pfe.pfekacemjwt.entitiy.OrderCount;
 import com.pfe.pfekacemjwt.entitiy.OrderDetail;
 import com.pfe.pfekacemjwt.entitiy.OrderInput;
+import com.pfe.pfekacemjwt.entitiy.RevenueCount;
 import com.pfe.pfekacemjwt.service.OrderDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,8 +11,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
 @RestController
 public class OrderDetailsController {
 
@@ -48,6 +52,8 @@ private OrderDetailsService orderDetailsService;
     public void markOrderAsPlaced(@PathVariable(name = "orderId") Integer orderId) {
         orderDetailsService.markOrderAsPlaced(orderId);
     }
+
+    //ADMIN DASHBOARD//
     @GetMapping("/getOrderCountsPerMonth")
     public List<OrderCount> getOrderCountsPerMonth() {
         return orderDetailsService.getOrderCountsPerMonth();
@@ -62,5 +68,24 @@ private OrderDetailsService orderDetailsService;
     public Long getNewOrderCount() {
         return orderDetailsService.getNewOrderCount();
     }
+
+
+
+    @GetMapping("/getTotalRevenue")
+    public Double getTotalRevenue() {
+        return orderDetailsService.getTotalRevenue();
+    }
+
+    @GetMapping("/getRevenuePerMonth")
+    public List<RevenueCount> getRevenuePerMonth() {
+        return orderDetailsService.getRevenuePerMonth();
+    }
+
+    @GetMapping("/getNewRevenue")
+    public Double getNewRevenue() {
+        return orderDetailsService.getNewRevenue();
+    }
+    //ADMIN DASHBOARD//
+
 
 }

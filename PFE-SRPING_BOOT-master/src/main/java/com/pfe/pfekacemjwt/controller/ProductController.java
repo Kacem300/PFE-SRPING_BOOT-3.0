@@ -61,10 +61,6 @@ public class ProductController {
         }
         return null;
     }
-// The productGroups code is commented out in your original code.
-    // If you want to use it, uncomment the following lines and make sure the groupIds are provided correctly.
-    // List<ProductGroups> groups = groupsDao.findAllById(groupIds);
-    // product.setProductGroups(new HashSet<>(groups));
 
 
     @GetMapping("/getRandomProducts")
@@ -97,11 +93,7 @@ public class ProductController {
     public void deleteProductDetails(@PathVariable("productId") Integer productId){
         productService.deleteProductDetails(productId);
     }
-    @PreAuthorize("hasRole('Admin')")
-    @DeleteMapping("/deleteProductCategory/{productCategoryId}")
-    public void deleteProductCategory(@PathVariable("productCategoryId") Integer productCategoryId){
-        productService.deleteProductCategory(productCategoryId);
-    }
+
     @GetMapping({"/getProductDetailsbyId/{productId}"})
     public Product getProductDetailsbyId(@PathVariable("productId") Integer productID){
         return productService.getProductID(productID);
@@ -154,6 +146,12 @@ public class ProductController {
     public ProductGroups addGroup(ProductGroups productGroups){
         return productService.addGroup(productGroups);
     }
+    @PreAuthorize("hasRole('Admin')")
+    @DeleteMapping("/deleteProductCategory/{productCategoryId}")
+    public void deleteProductCategory(@PathVariable("productCategoryId") Integer productCategoryId){
+        productService.deleteProductCategory(productCategoryId);
+    }
+
 
 
 }

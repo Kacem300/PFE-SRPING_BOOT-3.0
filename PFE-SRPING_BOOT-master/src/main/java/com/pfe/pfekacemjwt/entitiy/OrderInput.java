@@ -6,7 +6,7 @@ public class OrderInput {
     private String fullName;
     private String fullAddress;
     private String contactNumber;
-//    private String alternateContactNumber;
+
     private List<OrderQuantity> orderQuantities;
 
     public String getFullName() {

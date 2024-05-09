@@ -207,6 +207,58 @@ public class OrderDetailsService {
 
 
 
+    public Double getTotalRevenue() {
+        // Get all orders
+        List<OrderDetail> orders = getAllOrderDetails("All");
+
+        // Calculate the total revenue for orders with status "placed"
+        return orders.stream()
+                .filter(order -> "Delivered".equals(order.getOrderStatus())) // Filter out orders with status "placed"
+                .mapToDouble(order -> order.getOrderQuantity() * order.getProduct().getProductDiscountprice()) // Calculate revenue for each order
+                .sum(); // Sum up the revenues
+    }
+
+    public List<RevenueCount> getRevenuePerMonth() {
+        // Get all orders
+        List<OrderDetail> orders = getAllOrderDetails("All");
+
+        // Calculate the revenue per month for orders with status "placed"
+        Map<YearMonth, Double> revenueCounts = orders.stream()
+                .filter(order -> "Delivered".equals(order.getOrderStatus())) // Filter out orders with status "placed"
+                .collect(Collectors.groupingBy(
+                        order -> {
+                            Instant instant = order.getOrderDate().toInstant();
+                            LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+                            return YearMonth.from(localDateTime); // Group by order month
+                        },
+                        Collectors.summingDouble(order -> order.getOrderQuantity() * order.getProduct().getProductDiscountprice()) // Calculate revenue for each month
+                ));
+
+        // Convert the map to a list of RevenueCount objects and return it
+        return revenueCounts.entrySet().stream()
+                .map(entry -> new RevenueCount(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    public Double getNewRevenue() {
+        // Get all orders
+        List<OrderDetail> orders = getAllOrderDetails("All");
+
+        // Get the current date (without time)
+        LocalDate today = LocalDate.now();
+
+        // Calculate the revenue for orders placed today
+        return orders.stream()
+                .filter(order -> "Delivered".equals(order.getOrderStatus())) // Filter out orders with status "placed"
+                .filter(order -> order.getOrderDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isEqual(today)) // Filter out orders placed today
+                .mapToDouble(order -> order.getOrderQuantity() * order.getProduct().getProductDiscountprice()) // Calculate revenue for each order
+                .sum(); // Sum up the revenues
+    }
+
+
+
+
+
 }
 
 

@@ -59,10 +59,10 @@ public class UserController {
 
     @PutMapping(value = "/updateCurrentUser", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public User updateCurrentUser(@RequestPart("user") User updatedUser,
-                                  @RequestPart("imageFile") MultipartFile[] file) {
+                                  @RequestPart("imageFile") MultipartFile file) {
         try {
-            Set<imageModel> userImages = uploadImage(file);
-            updatedUser.setUserImages(userImages);
+            imageModel userImage = uploadImage(file);
+            updatedUser.setUserImage(userImage);
             return userService.updateCurrentUser(updatedUser);
         } catch(Exception e){
             System.out.println(e.getMessage());
@@ -70,25 +70,18 @@ public class UserController {
         return null;
     }
 
-    public Set<imageModel> uploadImage(MultipartFile[] multipartFiles) throws IOException {
-        Set<imageModel> imageModels = new HashSet<>();
-        for (MultipartFile file : multipartFiles) {
-            imageModel userImage = new imageModel(
-                    file.getOriginalFilename(),
-                    file.getContentType(),
-                    file.getBytes()
-            );
-            imageModels.add(userImage);
-        }
-        return imageModels;
+    public imageModel uploadImage(MultipartFile multipartFile) throws IOException {
+        imageModel userImage = new imageModel(
+                multipartFile.getOriginalFilename(),
+                multipartFile.getContentType(),
+                multipartFile.getBytes()
+        );
+        return userImage;
     }
 
 
 
-    //    @PutMapping("/updateCurrentUser")
-//    public User updateCurrentUser(@RequestBody User updatedUser) {
-//        return userService.updateCurrentUser(updatedUser);
-//    }
+
     @GetMapping({"/getCurrentUser"})
     public User getCurrentUser(){
         return userService.getCurrentUser();
@@ -126,4 +119,10 @@ public class UserController {
     public List<UserCount> getUserCountsPerMonth() {
         return userService.getUserCountsPerMonth();
     }
+
+    @GetMapping("/getAllUsers")
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
 }
