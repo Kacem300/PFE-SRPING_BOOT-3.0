@@ -13,7 +13,8 @@ public interface OrderDao extends CrudRepository<OrderDetail, Integer>{
     public List<OrderDetail> findByUser(User user);
     public List<OrderDetail> findByOrderStatus(String status);
     public List<OrderDetail> findByOrderStatusNot(String status);
-//    public List<Product> findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(
-//            String key1, String key2, Pageable pageable);
-//}
+
+
+
+
 }

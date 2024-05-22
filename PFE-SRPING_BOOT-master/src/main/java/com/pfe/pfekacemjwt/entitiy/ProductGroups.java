@@ -9,7 +9,9 @@ public class ProductGroups {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer productGroupsId;
-    private String productGroupsName;
+   private String productGroupsName;
+//       private String GroupsName;
+
 
 
 
@@ -25,7 +27,15 @@ public class ProductGroups {
         this.productGroupsId = productGroupsId;
     }
 
-    public String getProductGroupsName() {
+//    public String getGroupsName() {
+//        return GroupsName;
+//    }
+//
+//    public void setGroupsName(String groupsName) {
+//        GroupsName = groupsName;
+//    }
+
+        public String getProductGroupsName() {
         return productGroupsName;
     }
 

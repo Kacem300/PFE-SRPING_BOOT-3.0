@@ -35,12 +35,13 @@ public class Product {
     )
     private Set<ProductSize> productSizes;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "product_Category_Id")
     private productCategory productCategory;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "product_productGroups",
+//    @ManyToMany(fetch = FetchType.EAGER,cascade = CascadeType.MERGE)
+@ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE, CascadeType.PERSIST })
+@JoinTable(name = "product_productGroups",
             joinColumns = {
                     @JoinColumn(name = "product_id")
             },

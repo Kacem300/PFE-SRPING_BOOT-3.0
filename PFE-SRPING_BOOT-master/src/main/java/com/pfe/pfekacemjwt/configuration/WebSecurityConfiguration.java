@@ -46,7 +46,7 @@ public class WebSecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/authenticate","/registerNewUser","/registrationConfirm","/getAllProduct","/getProductDetailsbyId/{productId}","getRandomProducts","addNewProduct").permitAll()
+                        .requestMatchers("/authenticate","/registerNewUser","/registrationConfirm","/getAllProduct","/getProductDetailsbyId/{productId}","getRandomProducts","addNewProduct","getTopOrderedProducts","getTopRatedProducts","getCategories","getGroups","forgotPassword","verifyToken","resetPassword").permitAll()
                         .requestMatchers(HttpHeaders.ALLOW).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))

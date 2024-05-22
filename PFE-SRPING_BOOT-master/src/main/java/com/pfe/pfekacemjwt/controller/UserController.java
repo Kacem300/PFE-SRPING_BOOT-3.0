@@ -16,15 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 @RestController
 public class UserController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private VerifyDao verifyDao;
 
 
     @Autowired
@@ -32,6 +32,35 @@ public class UserController {
     @Autowired
     private UserDao userDao;
 
+    @PostMapping("/forgotPassword")
+    public Map<String, String> forgotPassword(@RequestParam("email") String email) {
+        User user = userService.findUserByEmail(email);
+        if (user == null) {
+            return Collections.singletonMap("message", "User not found");
+        }
+
+        userService.generateVerificationTokenForUser(user);
+        return Collections.singletonMap("message", "Verification token sent to email");
+    }
+
+    @PostMapping("/verifyToken")
+    public Map<String, Boolean> verifyToken(@RequestParam("token") String token) {
+        boolean isValid = userService.validateVerificationToken(token);
+        return Collections.singletonMap("isValid", isValid);
+    }
+
+    @PostMapping("/resetPassword")
+    public Map<String, String> resetPassword(@RequestParam("token") String token, @RequestParam("newPassword") String newPassword) {
+        VerificationToken verificationToken = verifyDao.findByToken(token);
+        if (verificationToken == null) {
+            return Collections.singletonMap("message", "Invalid token");
+        }
+
+        User user = verificationToken.getUser();
+        userService.changeUserPassword(user, newPassword);
+        verifyDao.delete(verificationToken); // Delete the used verification token
+        return Collections.singletonMap("message", "Password reset successful");
+    }
 
     @RequestMapping(value="/registrationConfirm", method = RequestMethod.GET)
     public void confirmRegistration(@RequestParam("token") String token) {
@@ -120,9 +149,16 @@ public class UserController {
         return userService.getUserCountsPerMonth();
     }
 
-    @GetMapping("/getAllUsers")
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
+
+//@GetMapping("/getAllUsers")
+//public List<User> getAllUsers(@RequestParam(required = false) String searchKeyword) {
+//    return userService.getAllUsers(searchKeyword);
+//}
+@GetMapping("/getAllUsers")
+public List<User> getAllUsers(@RequestParam(required = false) String searchKeyword,
+                              @RequestParam(required = false) String statusFilter) {
+    return userService.getAllUsers(searchKeyword, statusFilter);
+}
+
 
 }

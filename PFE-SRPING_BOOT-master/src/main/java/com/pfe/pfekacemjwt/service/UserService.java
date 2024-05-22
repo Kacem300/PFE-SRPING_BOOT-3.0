@@ -30,9 +30,34 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder ;
     @Autowired
-    private VerifyDao VerifDao;
+    private VerifyDao verifyDao;
     @Autowired
     private EmailSenderService emailSenderService;
+
+
+
+    public void generateVerificationTokenForUser(User user) {
+        String token = UUID.randomUUID().toString();
+        VerificationToken verificationToken = new VerificationToken(token, user);
+        verifyDao.save(verificationToken);
+
+        String message = "Your password reset token is: " + token;
+        emailSenderService.sendEmail(user.getUserEmail(), "Password Reset Token", message);
+    }
+
+    public User findUserByEmail(String email) {
+        return userDao.findByUserEmail(email);
+    }
+
+    public boolean validateVerificationToken(String token) {
+        VerificationToken verificationToken = verifyDao.findByToken(token);
+        return verificationToken != null;
+    }
+
+    public void changeUserPassword(User user, String newPassword) {
+        user.setUserPassword(passwordEncoder.encode(newPassword));
+        userDao.save(user);
+    }
 
 
     public User registerNewUser(User user){
@@ -43,12 +68,13 @@ public class UserService {
         user.setUserPassword(getEncodedPassword(user.getUserPassword()));
         user.setUserImage(null);
         user.setEnabled(false);
+        user.setRegistrationDate(new Date());
         User savedUser = userDao.save(user);
 
     // Generate a verification token
     String token = UUID.randomUUID().toString();
     VerificationToken verificationToken = new VerificationToken(token, savedUser);
-        VerifDao.save(verificationToken);
+        verifyDao.save(verificationToken);
 
     // Send an email to the user with the verification token
         String confirmationUrl = "http://localhost:4200/emailVerification?token=" + token;
@@ -180,7 +206,9 @@ public Long getTotalUserCount() {
     // Return the total number of non-admin users
     return (long) users.size();
 }
-    public List<User> getAllUsers() {
+
+
+    public List<User> getAllUsers(String searchKeyword, String statusFilter) {
         // Get all users
         List<User> users = userDao.findAll();
 
@@ -189,8 +217,65 @@ public Long getTotalUserCount() {
                 .filter(user -> user.getRole().stream().noneMatch(role -> role.getRolename().equals("Admin")))
                 .collect(Collectors.toList());
 
+        // Filter users based on the status filter
+        if (statusFilter != null) {
+            switch (statusFilter.toLowerCase()) {
+                case "verified":
+                    users = users.stream()
+                            .filter(User::getEnabled)
+                            .collect(Collectors.toList());
+                    break;
+                case "unverified":
+                    users = users.stream()
+                            .filter(user -> !user.getEnabled())
+                            .collect(Collectors.toList());
+                    break;
+                case "all":
+                default:
+                    // Do nothing, keep all users
+                    break;
+            }
+        }
+
+        // Filter users based on the search keyword
+        if (searchKeyword != null && !searchKeyword.isEmpty()) {
+            String keyword = searchKeyword.toLowerCase();
+            users = users.stream()
+                    .filter(user ->
+                            user.getUserName().toLowerCase().contains(keyword) ||
+                                    user.getUserFirstName().toLowerCase().contains(keyword) ||
+                                    user.getUserLastname().toLowerCase().contains(keyword))
+                    .collect(Collectors.toList());
+        }
+
         return users;
     }
+
+
+//    public List<User> getAllUsers(String searchKeyword) {
+//        // Get all users
+//        List<User> users = userDao.findAll();
+//
+//        // Filter out admin users
+//        users = users.stream()
+//                .filter(user -> user.getRole().stream().noneMatch(role -> role.getRolename().equals("Admin")))
+//                .collect(Collectors.toList());
+//
+//        // Filter users based on the search keyword
+//        if (searchKeyword != null && !searchKeyword.isEmpty()) {
+//            String keyword = searchKeyword.toLowerCase();
+//            users = users.stream()
+//                    .filter(user ->
+//                            user.getUserName().toLowerCase().contains(keyword) ||
+//                                    user.getUserFirstName().toLowerCase().contains(keyword) ||
+//                                    user.getUserLastname().toLowerCase().contains(keyword))
+//                    .collect(Collectors.toList());
+//        }
+//
+//        return users;
+//    }
+
+
 
 
 

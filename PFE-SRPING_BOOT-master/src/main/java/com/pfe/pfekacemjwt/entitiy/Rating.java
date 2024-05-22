@@ -13,7 +13,7 @@ public class Rating {
 
     @ManyToOne
     private Product product;
-
+    @Column(nullable = true)
     private Integer rating;
 
     public Rating() {

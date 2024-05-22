@@ -22,7 +22,7 @@ public class OrderDetail {
 
 
     private Date orderDate;
-    @ManyToOne
+    @ManyToOne()
     private Product product;
     @ManyToOne
     private User user;

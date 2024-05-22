@@ -10,9 +10,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class ProductService {
@@ -36,6 +38,13 @@ public class ProductService {
     private categoryDao categoryDao;
     @Autowired
     private GroupsDao groupsDao;
+    @Autowired
+    private ImageModelDAO imageModelDAO;
+
+
+    public imageModel saveImage(imageModel imageModel) {
+        return imageModelDAO.save(imageModel);
+    }
 
     public Product addNewProduct(Product product) {
         return productDao.save(product);
@@ -48,18 +57,68 @@ public class ProductService {
     }
 
 
+//    public List<Product> getProducts(int pageNumber, String keySearch, String categoryName) {
+//        Pageable pageable = PageRequest.of(pageNumber, 8);
+//        List<Product> products;
+//
+//        if (categoryName != null && !categoryName.isEmpty()) {
+//            if (keySearch.isEmpty()) {
+//                products = productDao.findByProductCategoryCategoryName(categoryName,pageable);
+//            } else {
+//                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch, keySearch, pageable);
+//
+//            }
+//        } else {
+//            if (keySearch.isEmpty()) {
+//                products = productDao.findAll(pageable);
+//            } else {
+//                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch, keySearch, pageable);
+//            }
+//        }
+//
+//        products.forEach(product -> product.getProductSizes().size()); // force initialization
+//        return products;
+//    }
+public List<Product> getProducts(int pageNumber, String keySearch, String categoryName, String groupName) {
+    Pageable pageable = PageRequest.of(pageNumber, 8);
+    List<Product> products;
 
-    public List<Product> getAllProducts(int pageNumber,String keySearch) {
-        Pageable pageable = PageRequest.of(pageNumber, 4);
-        List<Product> products;
-        if(keySearch.isEmpty()){
-            products = (List<Product>) productDao.findAll(pageable);
-        }else {
-            products = (List<Product>) productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch,keySearch,pageable);
+    if (groupName != null && !groupName.isEmpty()) {
+        if (categoryName != null && !categoryName.isEmpty()) {
+            if (keySearch.isEmpty()) {
+                products = productDao.findByProductCategoryCategoryNameAndProductGroupsProductGroupsName(categoryName, groupName, pageable);
+            } else {
+                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCaseAndProductGroupsProductGroupsName(keySearch, keySearch, groupName, pageable);
+            }
+        } else {
+            if (keySearch.isEmpty()) {
+                products = productDao.findByProductGroupsProductGroupsName(groupName, pageable);
+            } else {
+                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCaseAndProductGroupsProductGroupsName(keySearch, keySearch, groupName, pageable);
+            }
         }
-        products.forEach(product -> product.getProductSizes().size()); // force initialization
-        return products;
+    } else {
+        if (categoryName != null && !categoryName.isEmpty()) {
+            if (keySearch.isEmpty()) {
+                products = productDao.findByProductCategoryCategoryName(categoryName,pageable);
+            } else {
+                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch, keySearch, pageable);
+
+            }
+        } else {
+            if (keySearch.isEmpty()) {
+                products = productDao.findAll(pageable);
+            } else {
+                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch, keySearch, pageable);
+            }
+        }
     }
+
+    products.forEach(product -> product.getProductSizes().size()); // force initialization
+    return products;
+}
+
+
 
 
 
@@ -69,6 +128,7 @@ public class ProductService {
     public void deleteProductDetails(Integer productId) {
         productDao.deleteById(productId);
     }
+
 
     public List<Product> getProductDetails(boolean single, Integer productId) {
         if (single && productId != 0) {
@@ -94,9 +154,53 @@ public class ProductService {
     public productCategory addCategory(productCategory category){
         return categoryDao.save(category);
     }
-    public void deleteProductCategory(Integer productCategoryId) {
 
+
+    @Transactional
+    public void deleteProductCategory(Integer productCategoryId) {
+        productCategory category = categoryDao.findById(productCategoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid product category ID: " + productCategoryId));
+
+        // Remove associations with products
+        List<Product> products = productDao.findByProductCategory(category);
+        for (Product product : products) {
+            product.setProductCategory(null);
+            productDao.save(product);
+        }
+
+        // Now delete the category
         categoryDao.deleteById(productCategoryId);
+    }
+
+    @Transactional
+    public void deleteProductGroup(Integer productGroupsId) {
+        ProductGroups group = groupsDao.findById(productGroupsId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid product group ID: " + productGroupsId));
+
+        // Remove associations with products
+        List<Product> products = productDao.findByProductGroups(group);
+        for (Product product : products) {
+            product.getProductGroups().remove(group);
+            productDao.save(product);
+        }
+
+        // Now delete the group
+        groupsDao.deleteById(productGroupsId);
+    }
+
+    //    public void deleteProductCategory(Integer productCategoryId) {
+//
+//        categoryDao.deleteById(productCategoryId);
+//    }
+//    public void deleteProductGroup(Integer productGroupsId) {
+//
+//        groupsDao.deleteById(productGroupsId);
+//    }
+    public productCategory updateCategory(productCategory category) {
+        return categoryDao.save(category);
+    }
+    public ProductGroups updateGroup(ProductGroups groups) {
+        return groupsDao.save(groups);
     }
 
     public List<productCategory> getCategories(){
@@ -141,7 +245,61 @@ public class ProductService {
         return rating.getRating();
     }
 
+    public List<Product> getTopOrderedProducts(int limit) {
+        // Fetch all orders and convert Iterable to List
+        Iterable<OrderDetail> iterable = orderDao.findAll();
+        List<OrderDetail> orders = StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
+
+        // Create a map to store the count of orders for each product
+        Map<Product, Long> productOrderCount = new HashMap<>();
+
+        // Iterate over the orders and increment the count for each product
+        for (OrderDetail order : orders) {
+            Product product = order.getProduct();
+            productOrderCount.put(product, productOrderCount.getOrDefault(product, 0L) + 1);
+        }
+
+        // Sort the entries in the map in descending order based on the count
+        List<Map.Entry<Product, Long>> sortedEntries = new ArrayList<>(productOrderCount.entrySet());
+        sortedEntries.sort(Map.Entry.<Product, Long>comparingByValue().reversed());
+
+        // Get the top 'limit' products
+        List<Product> topProducts = sortedEntries.stream()
+                .limit(limit)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        return topProducts;
+    }
+    public List<Product> getTopRatedProducts(int limit) {
+        // Fetch all products
+        List<Product> allProducts = (List<Product>) productDao.findAll();
+
+        // Create a map to store the average rating for each product
+        Map<Product, Double> productAverageRating = new HashMap<>();
+
+        // Iterate over the products and calculate the average rating for each product
+        for (Product product : allProducts) {
+            double averageRating = getAverageRating(product);
+            productAverageRating.put(product, averageRating);
+        }
+
+        // Sort the entries in the map in descending order based on the average rating
+        List<Map.Entry<Product, Double>> sortedEntries = new ArrayList<>(productAverageRating.entrySet());
+        sortedEntries.sort(Map.Entry.<Product, Double>comparingByValue().reversed());
+
+        // Get the top 'limit' products
+        List<Product> topProducts = sortedEntries.stream()
+                .limit(limit)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        return topProducts;
+    }
 
 
+//    public List<Product> getProductsByCategory(String categoryName) {
+//        return productDao.findByProductCategoryCategoryName(categoryName);
+//    }
 
 }

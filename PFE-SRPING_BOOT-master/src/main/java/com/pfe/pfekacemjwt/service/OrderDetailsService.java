@@ -4,6 +4,8 @@ package com.pfe.pfekacemjwt.service;
 import com.pfe.pfekacemjwt.dao.*;
 import com.pfe.pfekacemjwt.entitiy.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-
 public class OrderDetailsService {
 
     private static final String Order_status = "Placed";
@@ -78,39 +79,6 @@ public class OrderDetailsService {
         }
     }
 
-//    public void placeOrder(OrderInput orderInput, boolean isSingleProductCheckout) {
-//        List<OrderQuantity> productQuantityList = orderInput.getOrderQuantities();
-//
-//        for (OrderQuantity o: productQuantityList) {
-//            Product product = productDao.findById(o.getProductId()).get();
-//
-//
-//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//            String currentUser = authentication.getName();
-//            User user = userDao.findById(currentUser).get();
-//
-//            OrderDetail orderDetail = new OrderDetail(
-//                    orderInput.getFullName(),
-//                    orderInput.getFullAddress(),
-//                    orderInput.getContactNumber(),
-//                    o.getQuantity(),
-//                    Order_status,
-//                    product.getProductDiscountprice() * o.getQuantity(),
-//                    product,
-//                    user
-//
-//            );
-//            orderDetail.setOrderDate(new Date());
-//
-//            // empty the cart.
-//            if(!isSingleProductCheckout) {
-//                List<Cart> carts = cartDao.findByUser(user);
-//                carts.stream().forEach(x -> cartDao.deleteById(x.getCartId()));
-//            }
-//
-//            orderDao.save(orderDetail);
-//        }
-//    }
 
     public List<OrderDetail> getOrderDetails() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -119,6 +87,27 @@ public class OrderDetailsService {
         return orderDao.findByUser(user);
     }
 
+
+//    public List<OrderDetail> getAllOrderDetail(String status, int pageNumber, String keySearch) {
+//        Pageable pageable = PageRequest.of(pageNumber, 8);
+//        List<OrderDetail> orderDetails;
+//
+//        if (keySearch.isEmpty()) {
+//            if (status.equals("All")) {
+//                orderDetails = orderDao.findAll(pageable);
+//            } else {
+//                orderDetails = orderDao.findByOrderStatus(status, pageable);
+//            }
+//        } else {
+//            if (status.equals("All")) {
+//                orderDetails = orderDao.findByUser_UserNameContainingIgnoreCase(keySearch, pageable);
+//            } else {
+//                orderDetails = orderDao.findByOrderStatusAndUser_UserNameContainingIgnoreCase(status, keySearch, pageable);
+//            }
+//        }
+//
+//        return orderDetails;
+//    }
 
 
 
@@ -135,8 +124,6 @@ public class OrderDetailsService {
                     x -> orderDetails.add(x)
             );
         }
-
-
         return orderDetails;
     }
 

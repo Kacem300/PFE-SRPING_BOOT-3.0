@@ -61,11 +61,15 @@ public class ProductController {
         }
         return null;
     }
-
+    @PostMapping(value = {"/uploadImage"}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public imageModel saveImage(@RequestPart("imageFile") MultipartFile[] file) throws IOException {
+        Set<imageModel> images = uploadImage(file);
+        return productService.saveImage((imageModel) images);
+    }
 
     @GetMapping("/getRandomProducts")
     public List<Product> getRandomProducts() {
-        return productService.getRandomProducts(12);
+        return productService.getRandomProducts(3);
     }
 
 
@@ -81,11 +85,12 @@ public class ProductController {
         }
         return imageModels;
     }
-
     @GetMapping("/getAllProduct")
-    public List<Product> getAllProduct(@RequestParam (defaultValue = "0")int pageNumber,
-                                       @RequestParam(defaultValue = "") String keySearch){
-        return productService.getAllProducts(pageNumber,keySearch);
+    public List<Product> getAllProduct(@RequestParam(defaultValue = "0") int pageNumber,
+                                       @RequestParam(defaultValue = "") String keySearch,
+                                       @RequestParam(defaultValue = "") String categoryName,
+                                       @RequestParam(defaultValue = "") String groupName ) {
+        return productService.getProducts(pageNumber, keySearch, categoryName, groupName);
     }
 
     @PreAuthorize("hasRole('Admin')")
@@ -151,7 +156,25 @@ public class ProductController {
     public void deleteProductCategory(@PathVariable("productCategoryId") Integer productCategoryId){
         productService.deleteProductCategory(productCategoryId);
     }
+    @PreAuthorize("hasRole('Admin')")
+    @DeleteMapping("/deleteProductGroup/{productGroupsId}")
+    public void deleteProductGroups(@PathVariable("productGroupsId") Integer productGroupsId){
+        productService.deleteProductGroup(productGroupsId);
+    }
+    
+    //Home Page
 
-
+    @GetMapping("/getTopOrderedProducts")
+    public List<Product> getTopOrderedProducts(@RequestParam(defaultValue = "10") int limit) {
+        return productService.getTopOrderedProducts(limit);
+    }
+    @GetMapping("/getTopRatedProducts")
+    public List<Product> getTopRatedProducts(@RequestParam(defaultValue = "10") int limit) {
+        return productService.getTopRatedProducts(limit);
+    }
+//    @GetMapping("/by-category/{categoryName}")
+//    public List<Product> getProductsByCategory(@PathVariable String categoryName) {
+//        return productService.getProductsByCategory(categoryName);
+//    }
 
 }
