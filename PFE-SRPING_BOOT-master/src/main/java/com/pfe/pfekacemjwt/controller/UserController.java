@@ -2,10 +2,7 @@ package com.pfe.pfekacemjwt.controller;
 
 import com.pfe.pfekacemjwt.dao.UserDao;
 import com.pfe.pfekacemjwt.dao.VerifyDao;
-import com.pfe.pfekacemjwt.entitiy.User;
-import com.pfe.pfekacemjwt.entitiy.UserCount;
-import com.pfe.pfekacemjwt.entitiy.VerificationToken;
-import com.pfe.pfekacemjwt.entitiy.imageModel;
+import com.pfe.pfekacemjwt.entitiy.*;
 import com.pfe.pfekacemjwt.service.UserService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,15 +147,40 @@ public class UserController {
     }
 
 
-//@GetMapping("/getAllUsers")
-//public List<User> getAllUsers(@RequestParam(required = false) String searchKeyword) {
-//    return userService.getAllUsers(searchKeyword);
-//}
+
 @GetMapping("/getAllUsers")
 public List<User> getAllUsers(@RequestParam(required = false) String searchKeyword,
                               @RequestParam(required = false) String statusFilter) {
     return userService.getAllUsers(searchKeyword, statusFilter);
 }
 
+
+
+//Contact//
+    @PostMapping("/ContactForm")
+    public ContactForm  submitForm(@RequestPart("ContactForm")  ContactForm ContactForm) {
+        return userService.Contact(ContactForm);
+    }
+
+    @GetMapping("/getContactFormCountsPerMonth")
+    public List<ContactFormCount> getContactFormCountsPerMonth() {
+        return userService.getContactFormCountsPerMonth();
+    }
+
+    @GetMapping("/getNewContactFormCount")
+    public Long getNewContactFormCount() {
+        return userService.getNewContactFormCount();
+    }
+
+    @GetMapping("/getTotalContactFormCount")
+    public Long getTotalContactFormCount() {
+        return userService.getTotalContactFormCount();
+    }
+
+    @GetMapping("/getAllContactForms")
+    public List<ContactForm> getAllContactForms() {
+        return userService.getAllContactForms();
+    }
+//Contact//
 
 }

@@ -89,8 +89,8 @@ public class ProductController {
     public List<Product> getAllProduct(@RequestParam(defaultValue = "0") int pageNumber,
                                        @RequestParam(defaultValue = "") String keySearch,
                                        @RequestParam(defaultValue = "") String categoryName,
-                                       @RequestParam(defaultValue = "") String groupName ) {
-        return productService.getProducts(pageNumber, keySearch, categoryName, groupName);
+                                       @RequestParam(defaultValue = "") String productGroupsName ) {
+        return productService.getProducts(pageNumber, keySearch, categoryName, productGroupsName);
     }
 
     @PreAuthorize("hasRole('Admin')")

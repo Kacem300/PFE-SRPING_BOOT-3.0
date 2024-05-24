@@ -1,12 +1,10 @@
 package com.pfe.pfekacemjwt.service;
 
+import com.pfe.pfekacemjwt.dao.ContactDao;
 import com.pfe.pfekacemjwt.dao.RoleDao;
 import com.pfe.pfekacemjwt.dao.UserDao;
 import com.pfe.pfekacemjwt.dao.VerifyDao;
-import com.pfe.pfekacemjwt.entitiy.Role;
-import com.pfe.pfekacemjwt.entitiy.User;
-import com.pfe.pfekacemjwt.entitiy.UserCount;
-import com.pfe.pfekacemjwt.entitiy.VerificationToken;
+import com.pfe.pfekacemjwt.entitiy.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,6 +31,8 @@ public class UserService {
     private VerifyDao verifyDao;
     @Autowired
     private EmailSenderService emailSenderService;
+    @Autowired
+    private ContactDao contactDao;
 
 
 
@@ -121,9 +121,7 @@ public class UserService {
         user.setUserImage(null);
         user.setEnabled(true);
         user.setRegistrationDate(new Date());
-//        Path path = Paths.get("path/to/your/image.jpg");
-//        byte[] imageBytes = Files.readAllBytes(path);
-//        user.setUserImage(imageBytes);
+
 
         userDao.save(user);
 
@@ -252,30 +250,47 @@ public Long getTotalUserCount() {
     }
 
 
-//    public List<User> getAllUsers(String searchKeyword) {
-//        // Get all users
-//        List<User> users = userDao.findAll();
-//
-//        // Filter out admin users
-//        users = users.stream()
-//                .filter(user -> user.getRole().stream().noneMatch(role -> role.getRolename().equals("Admin")))
-//                .collect(Collectors.toList());
-//
-//        // Filter users based on the search keyword
-//        if (searchKeyword != null && !searchKeyword.isEmpty()) {
-//            String keyword = searchKeyword.toLowerCase();
-//            users = users.stream()
-//                    .filter(user ->
-//                            user.getUserName().toLowerCase().contains(keyword) ||
-//                                    user.getUserFirstName().toLowerCase().contains(keyword) ||
-//                                    user.getUserLastname().toLowerCase().contains(keyword))
-//                    .collect(Collectors.toList());
-//        }
-//
-//        return users;
-//    }
+
+    public ContactForm Contact(ContactForm contactForm){
+        contactForm.setCreatedAt(new Date());
+        return contactDao.save(contactForm);
+    }
+
+    public List<ContactFormCount> getContactFormCountsPerMonth() {
+        List<ContactForm> contactForms = contactDao.findAll();
+
+        Map<YearMonth, Long> contactFormCounts = contactForms.stream()
+                .filter(contactForm -> contactForm.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        contactForm -> {
+                            Instant instant = contactForm.getCreatedAt().toInstant();
+                            LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+                            return YearMonth.from(localDateTime);
+                        },
+                        Collectors.counting()
+                ));
+
+        return contactFormCounts.entrySet().stream()
+                .map(entry -> new ContactFormCount(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
 
 
+    public Long getNewContactFormCount() {
+        List<ContactForm> contactForms = contactDao.findAll();
+        LocalDate today = LocalDate.now();
+
+        return contactForms.stream()
+                .filter(contactForm -> contactForm.getCreatedAt() != null)
+                .filter(contactForm -> contactForm.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isEqual(today))
+                .count();
+    }
+    public Long getTotalContactFormCount() {
+        return contactDao.count();
+    }
+    public List<ContactForm> getAllContactForms() {
+        return contactDao.findAll();
+    }
 
 
 

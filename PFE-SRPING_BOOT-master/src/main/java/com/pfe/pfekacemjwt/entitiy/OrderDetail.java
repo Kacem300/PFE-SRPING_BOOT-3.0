@@ -22,7 +22,7 @@ public class OrderDetail {
 
 
     private Date orderDate;
-    @ManyToOne()
+    @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     private Product product;
     @ManyToOne
     private User user;

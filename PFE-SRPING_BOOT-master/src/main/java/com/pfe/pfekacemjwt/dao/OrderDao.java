@@ -13,7 +13,7 @@ public interface OrderDao extends CrudRepository<OrderDetail, Integer>{
     public List<OrderDetail> findByUser(User user);
     public List<OrderDetail> findByOrderStatus(String status);
     public List<OrderDetail> findByOrderStatusNot(String status);
-
+    public List<OrderDetail> findByProduct_ProductId(Integer productId);
 
 
 

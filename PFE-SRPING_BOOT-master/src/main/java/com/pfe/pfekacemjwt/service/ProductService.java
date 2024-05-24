@@ -79,22 +79,22 @@ public class ProductService {
 //        products.forEach(product -> product.getProductSizes().size()); // force initialization
 //        return products;
 //    }
-public List<Product> getProducts(int pageNumber, String keySearch, String categoryName, String groupName) {
+public List<Product> getProducts(int pageNumber, String keySearch, String categoryName, String productGroupsName) {
     Pageable pageable = PageRequest.of(pageNumber, 8);
     List<Product> products;
 
-    if (groupName != null && !groupName.isEmpty()) {
+    if (productGroupsName != null && !productGroupsName.isEmpty()) {
         if (categoryName != null && !categoryName.isEmpty()) {
             if (keySearch.isEmpty()) {
-                products = productDao.findByProductCategoryCategoryNameAndProductGroupsProductGroupsName(categoryName, groupName, pageable);
+                products = productDao.findByProductCategoryCategoryNameAndProductGroupsProductGroupsName(categoryName, productGroupsName, pageable);
             } else {
-                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCaseAndProductGroupsProductGroupsName(keySearch, keySearch, groupName, pageable);
+                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCaseAndProductGroupsProductGroupsName(keySearch, keySearch, productGroupsName, pageable);
             }
         } else {
             if (keySearch.isEmpty()) {
-                products = productDao.findByProductGroupsProductGroupsName(groupName, pageable);
+                products = productDao.findByProductGroupsProductGroupsName(productGroupsName, pageable);
             } else {
-                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCaseAndProductGroupsProductGroupsName(keySearch, keySearch, groupName, pageable);
+                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCaseAndProductGroupsProductGroupsName(keySearch, keySearch, productGroupsName, pageable);
             }
         }
     } else {
@@ -125,9 +125,18 @@ public List<Product> getProducts(int pageNumber, String keySearch, String catego
     public Product getProductID(Integer productId) {
         return productDao.findById(productId).get();
     }
-    public void deleteProductDetails(Integer productId) {
-        productDao.deleteById(productId);
-    }
+//    public void deleteProductDetails(Integer productId) {
+//        productDao.deleteById(productId);
+//    }
+@Transactional
+public void deleteProductDetails(Integer productId) {
+    orderDao.findByProduct_ProductId(productId).forEach(order -> {
+        order.setProduct(null);
+        orderDao.save(order);
+    });
+    // Now delete the product
+    productDao.deleteById(productId);
+}
 
 
     public List<Product> getProductDetails(boolean single, Integer productId) {
