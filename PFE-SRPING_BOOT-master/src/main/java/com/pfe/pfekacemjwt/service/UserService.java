@@ -121,9 +121,21 @@ public class UserService {
         user.setUserImage(null);
         user.setEnabled(true);
         user.setRegistrationDate(new Date());
-
-
         userDao.save(user);
+
+        User userTwo = new User();
+        userTwo.setUserFirstName("MFBB");
+        userTwo.setUserLastname("benbrahim");
+        userTwo.setUserName("MFBB555");
+        userTwo.setUserEmail("MFBB@gmail.com");
+        userTwo.setUserPassword(getEncodedPassword("MFBB@pass"));
+        Set<Role> userRolesTwo = new HashSet<>();
+        userRolesTwo.add(userRole);
+        userTwo.setRole(userRolesTwo);
+        userTwo.setUserImage(null);
+        userTwo.setEnabled(true);
+        userTwo.setRegistrationDate(new Date());
+        userDao.save(userTwo);
 
 
     }
@@ -147,7 +159,10 @@ public class UserService {
         user.setUserFirstName(updatedUser.getUserFirstName());
         user.setUserLastname(updatedUser.getUserLastname());
         user.setUserEmail(updatedUser.getUserEmail());
-        user.setUserPassword(updatedUser.getUserPassword());
+//        user.setUserPassword(passwordEncoder.encode(updatedUser.getUserPassword()));
+        if (updatedUser.getUserPassword() != null && !updatedUser.getUserPassword().isEmpty()) {
+            user.setUserPassword(passwordEncoder.encode(updatedUser.getUserPassword()));
+        }
         user.setUserImage(updatedUser.getUserImage());
         user.setRole(updatedUser.getRole());
 
@@ -292,6 +307,17 @@ public Long getTotalUserCount() {
         return contactDao.findAll();
     }
 
+
+    public void deleteUser(String username) {
+        User user = userDao.findById(username).orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Delete the user's roles from the user_role table
+        userDao.deleteUserRoles(user.getUserName());
+        userDao.deleteUserComments(user.getUserName());
+        userDao.deleteUserVerificationTokens(user.getUserName());
+        // Now you can safely delete the user
+        userDao.delete(user);
+    }
 
 
 

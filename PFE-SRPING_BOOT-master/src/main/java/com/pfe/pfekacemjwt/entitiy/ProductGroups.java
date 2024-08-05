@@ -27,13 +27,7 @@ public class ProductGroups {
         this.productGroupsId = productGroupsId;
     }
 
-//    public String getGroupsName() {
-//        return GroupsName;
-//    }
-//
-//    public void setGroupsName(String groupsName) {
-//        GroupsName = groupsName;
-//    }
+
 
         public String getProductGroupsName() {
         return productGroupsName;

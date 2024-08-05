@@ -121,12 +121,7 @@ public class ProductController {
         rating.setProduct(product);
         return productService.saveRating(rating); // you'll need to create this service method
     }
-    @GetMapping("/product/{productId}")
-    public Double getProductDetails(@PathVariable("productId") Integer productId) {
-        Product product = productService.getProductID(productId);
-        Double averageRating = productService.getAverageRating(product);
-        return averageRating;
-    }
+
 
     @GetMapping("/userRating/{productId}")
     public Integer getUserRatingForProduct(@PathVariable("productId") Integer productId) {
@@ -164,17 +159,52 @@ public class ProductController {
     
     //Home Page
 
+    @GetMapping("/product/{productId}")
+    public Double getProductDetails(@PathVariable("productId") Integer productId) {
+        Product product = productService.getProductID(productId);
+        Double averageRating = productService.getAverageRating(product);
+        return averageRating;
+    }
     @GetMapping("/getTopOrderedProducts")
     public List<Product> getTopOrderedProducts(@RequestParam(defaultValue = "10") int limit) {
         return productService.getTopOrderedProducts(limit);
     }
+    @GetMapping("/getLeastOrderedProducts")
+    public List<Product> getLeastOrderedProducts(@RequestParam(defaultValue = "10") int limit) {
+        return productService.getLeastOrderedProducts(limit);
+    }
+
     @GetMapping("/getTopRatedProducts")
     public List<Product> getTopRatedProducts(@RequestParam(defaultValue = "10") int limit) {
         return productService.getTopRatedProducts(limit);
     }
-//    @GetMapping("/by-category/{categoryName}")
-//    public List<Product> getProductsByCategory(@PathVariable String categoryName) {
-//        return productService.getProductsByCategory(categoryName);
-//    }
+    @GetMapping("/getWorstRatedProducts")
+    public List<Product> getWorstRatedProducts(@RequestParam(defaultValue = "10") int limit) {
+        return productService.getWorstRatedProducts(limit);
+    }
+
+
+    @GetMapping("/getOrderCountPerProduct/{productId}")
+    public Long getOrderCountPerProduct(@PathVariable("productId") Integer productId) {
+        Product product = productService.getProductID(productId);
+        return productService.getOrderCount(product);
+    }
+
+
+    @PutMapping("/category/{ProductCategoryId}")
+    public productCategory updateCategory(@PathVariable Integer ProductCategoryId, @RequestBody productCategory category) {
+        if (!ProductCategoryId.equals(category.getProductCategoryId())) {
+            throw new RuntimeException("Category ID mismatch");
+        }
+        return productService.updateCategory(category);
+    }
+
+    @PutMapping("/group/{ProductGroupsId}")
+    public ProductGroups updateGroup(@PathVariable Integer ProductGroupsId, @RequestBody ProductGroups groups) {
+        if (!ProductGroupsId.equals(groups.getProductGroupsId())) {
+            throw new RuntimeException("Group ID mismatch");
+        }
+        return productService.updateGroup(groups);
+    }
 
 }

@@ -57,28 +57,6 @@ public class ProductService {
     }
 
 
-//    public List<Product> getProducts(int pageNumber, String keySearch, String categoryName) {
-//        Pageable pageable = PageRequest.of(pageNumber, 8);
-//        List<Product> products;
-//
-//        if (categoryName != null && !categoryName.isEmpty()) {
-//            if (keySearch.isEmpty()) {
-//                products = productDao.findByProductCategoryCategoryName(categoryName,pageable);
-//            } else {
-//                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch, keySearch, pageable);
-//
-//            }
-//        } else {
-//            if (keySearch.isEmpty()) {
-//                products = productDao.findAll(pageable);
-//            } else {
-//                products = productDao.findByProductNameContainingIgnoreCaseOrProductDescriptionContainingIgnoreCase(keySearch, keySearch, pageable);
-//            }
-//        }
-//
-//        products.forEach(product -> product.getProductSizes().size()); // force initialization
-//        return products;
-//    }
 public List<Product> getProducts(int pageNumber, String keySearch, String categoryName, String productGroupsName) {
     Pageable pageable = PageRequest.of(pageNumber, 8);
     List<Product> products;
@@ -125,16 +103,13 @@ public List<Product> getProducts(int pageNumber, String keySearch, String catego
     public Product getProductID(Integer productId) {
         return productDao.findById(productId).get();
     }
-//    public void deleteProductDetails(Integer productId) {
-//        productDao.deleteById(productId);
-//    }
+
 @Transactional
 public void deleteProductDetails(Integer productId) {
     orderDao.findByProduct_ProductId(productId).forEach(order -> {
         order.setProduct(null);
         orderDao.save(order);
     });
-    // Now delete the product
     productDao.deleteById(productId);
 }
 
@@ -197,20 +172,15 @@ public void deleteProductDetails(Integer productId) {
         groupsDao.deleteById(productGroupsId);
     }
 
-    //    public void deleteProductCategory(Integer productCategoryId) {
-//
-//        categoryDao.deleteById(productCategoryId);
-//    }
-//    public void deleteProductGroup(Integer productGroupsId) {
-//
-//        groupsDao.deleteById(productGroupsId);
-//    }
+
+
     public productCategory updateCategory(productCategory category) {
         return categoryDao.save(category);
     }
     public ProductGroups updateGroup(ProductGroups groups) {
         return groupsDao.save(groups);
     }
+
 
     public List<productCategory> getCategories(){
         return categoryDao.findAll();
@@ -225,10 +195,7 @@ public void deleteProductDetails(Integer productId) {
         return groupsDao.save(groups);
     }
 
-    public Double getAverageRating(Product product) {
-        List<Rating> ratings = ratingDao.findByProduct(product);
-        return ratings.stream().mapToInt(Rating::getRating).average().orElse(0.0);
-    }
+
 
     public Rating saveRating(Rating rating) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -254,61 +221,98 @@ public void deleteProductDetails(Integer productId) {
         return rating.getRating();
     }
 
+    public Long getOrderCount(Product product) {
+        List<OrderDetail> orders = orderDao.findByProduct(product);
+        return (long) orders.size();
+    }
+    public Double getAverageRating(Product product) {
+        List<Rating> ratings = ratingDao.findByProduct(product);
+        return ratings.stream().mapToInt(Rating::getRating).average().orElse(0.0);
+    }
+
     public List<Product> getTopOrderedProducts(int limit) {
-        // Fetch all orders and convert Iterable to List
-        Iterable<OrderDetail> iterable = orderDao.findAll();
-        List<OrderDetail> orders = StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
-
-        // Create a map to store the count of orders for each product
+        // Fetch all products
+        List<Product> allProducts = (List<Product>) productDao.findAll();
+        // Create a map to store the order count for each product
         Map<Product, Long> productOrderCount = new HashMap<>();
-
-        // Iterate over the orders and increment the count for each product
-        for (OrderDetail order : orders) {
-            Product product = order.getProduct();
-            productOrderCount.put(product, productOrderCount.getOrDefault(product, 0L) + 1);
+        // Iterate over the products and calculate the order count for each product
+        for (Product product : allProducts) {
+            long orderCount = getOrderCount(product);
+            productOrderCount.put(product, orderCount);
         }
-
-        // Sort the entries in the map in descending order based on the count
+        // Sort the entries in the map in descending order based on the order count
         List<Map.Entry<Product, Long>> sortedEntries = new ArrayList<>(productOrderCount.entrySet());
         sortedEntries.sort(Map.Entry.<Product, Long>comparingByValue().reversed());
-
         // Get the top 'limit' products
         List<Product> topProducts = sortedEntries.stream()
                 .limit(limit)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-
         return topProducts;
     }
+
+    public List<Product> getLeastOrderedProducts(int limit) {
+        // Fetch all products
+        List<Product> allProducts = (List<Product>) productDao.findAll();
+        // Create a map to store the order count for each product
+        Map<Product, Long> productOrderCount = new HashMap<>();
+        // Iterate over the products and calculate the order count for each product
+        for (Product product : allProducts) {
+            long orderCount = getOrderCount(product);
+            productOrderCount.put(product, orderCount);
+        }
+        // Sort the entries in the map in descending order based on the order count
+        List<Map.Entry<Product, Long>> sortedEntries = new ArrayList<>(productOrderCount.entrySet());
+        sortedEntries.sort(Map.Entry.<Product, Long>comparingByValue());
+        // Get the top 'limit' products
+        List<Product> topProducts = sortedEntries.stream()
+                .limit(limit)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        return topProducts;
+    }
+
     public List<Product> getTopRatedProducts(int limit) {
         // Fetch all products
         List<Product> allProducts = (List<Product>) productDao.findAll();
-
         // Create a map to store the average rating for each product
         Map<Product, Double> productAverageRating = new HashMap<>();
-
         // Iterate over the products and calculate the average rating for each product
         for (Product product : allProducts) {
             double averageRating = getAverageRating(product);
             productAverageRating.put(product, averageRating);
         }
-
         // Sort the entries in the map in descending order based on the average rating
         List<Map.Entry<Product, Double>> sortedEntries = new ArrayList<>(productAverageRating.entrySet());
         sortedEntries.sort(Map.Entry.<Product, Double>comparingByValue().reversed());
-
         // Get the top 'limit' products
         List<Product> topProducts = sortedEntries.stream()
                 .limit(limit)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
-
+        return topProducts;
+    }
+    public List<Product> getWorstRatedProducts(int limit) {
+        // Fetch all products
+        List<Product> allProducts = (List<Product>) productDao.findAll();
+        // Create a map to store the average rating for each product
+        Map<Product, Double> productAverageRating = new HashMap<>();
+        // Iterate over the products and calculate the average rating for each product
+        for (Product product : allProducts) {
+            double averageRating = getAverageRating(product);
+            productAverageRating.put(product, averageRating);
+        }
+        // Sort the entries in the map in descending order based on the average rating
+        List<Map.Entry<Product, Double>> sortedEntries = new ArrayList<>(productAverageRating.entrySet());
+        sortedEntries.sort(Map.Entry.<Product, Double>comparingByValue());
+        // Get the top 'limit' products
+        List<Product> topProducts = sortedEntries.stream()
+                .limit(limit)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
         return topProducts;
     }
 
 
-//    public List<Product> getProductsByCategory(String categoryName) {
-//        return productDao.findByProductCategoryCategoryName(categoryName);
-//    }
 
 }

@@ -183,4 +183,14 @@ public List<User> getAllUsers(@RequestParam(required = false) String searchKeywo
     }
 //Contact//
 
+    @DeleteMapping("/deleteUser/{username}")
+    @PreAuthorize("hasRole('Admin')")
+    public Map<String, String> deleteUser(@PathVariable String username) {
+        try {
+            userService.deleteUser(username);
+            return Collections.singletonMap("message", "User deleted successfully");
+        } catch (RuntimeException e) {
+            return Collections.singletonMap("message", e.getMessage());
+        }
+    }
 }

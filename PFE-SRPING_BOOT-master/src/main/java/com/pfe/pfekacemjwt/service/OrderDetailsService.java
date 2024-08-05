@@ -11,10 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,52 +77,69 @@ public class OrderDetailsService {
     }
 
 
-    public List<OrderDetail> getOrderDetails() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUser = authentication.getName();
-        User user = userDao.findById(currentUser).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return orderDao.findByUser(user);
-    }
-
-
-//    public List<OrderDetail> getAllOrderDetail(String status, int pageNumber, String keySearch) {
-//        Pageable pageable = PageRequest.of(pageNumber, 8);
-//        List<OrderDetail> orderDetails;
-//
-//        if (keySearch.isEmpty()) {
-//            if (status.equals("All")) {
-//                orderDetails = orderDao.findAll(pageable);
-//            } else {
-//                orderDetails = orderDao.findByOrderStatus(status, pageable);
-//            }
-//        } else {
-//            if (status.equals("All")) {
-//                orderDetails = orderDao.findByUser_UserNameContainingIgnoreCase(keySearch, pageable);
-//            } else {
-//                orderDetails = orderDao.findByOrderStatusAndUser_UserNameContainingIgnoreCase(status, keySearch, pageable);
-//            }
-//        }
-//
-//        return orderDetails;
+//    public List<OrderDetail> getOrderDetails() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentUser = authentication.getName();
+//        User user = userDao.findById(currentUser).orElseThrow(() -> new IllegalArgumentException("User not found"));
+//        return orderDao.findByUser(user);
 //    }
+public List<OrderDetail> getOrderDetails(String productName) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String currentUser = authentication.getName();
+    User user = userDao.findById(currentUser).orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+    // Get all OrderDetails for the user
+    List<OrderDetail> userOrders = orderDao.findByUser(user);
+
+    if (productName != null && !productName.isEmpty()) {
+        // Filter the user's orders by product name
+        return userOrders.stream()
+                .filter(order -> order.getProduct().getProductName().toLowerCase().contains(productName.toLowerCase()))
+                .collect(Collectors.toList());
+    } else {
+        // If no product name is provided, return all OrderDetails for the user
+        return userOrders;
+    }
+}
 
 
 
-    public List<OrderDetail> getAllOrderDetails(String status) {
-
+    public List<OrderDetail> getAllOrderDetails(String status, String searchKeyword) {
         List<OrderDetail> orderDetails = new ArrayList<>();
 
-        if(status.equals("All")) {
-            orderDao.findAll().forEach(
-                    x -> orderDetails.add(x)
-            );
+        if (searchKeyword != null && !searchKeyword.isEmpty()) {
+            Optional<OrderDetail> optionalOrderDetail = orderDao.findByOrderFullNameContainingIgnoreCaseOrUser_UserNameContainingIgnoreCase(searchKeyword,searchKeyword);
+            if (optionalOrderDetail.isPresent()) {
+                orderDetails.add(optionalOrderDetail.get());
+            }
+        } else if (status.equals("All")) {
+            // Retrieve all orders
+            orderDao.findAll().forEach(orderDetails::add);
         } else {
-            orderDao.findByOrderStatus(status).forEach(
-                    x -> orderDetails.add(x)
-            );
+            // Retrieve orders by status
+            orderDao.findByOrderStatus(status).forEach(orderDetails::add);
         }
+
         return orderDetails;
     }
+
+
+
+//    public List<OrderDetail> getAllOrderDetails(String status) {
+//
+//        List<OrderDetail> orderDetails = new ArrayList<>();
+//
+//        if(status.equals("All")) {
+//            orderDao.findAll().forEach(
+//                    x -> orderDetails.add(x)
+//            );
+//        } else {
+//            orderDao.findByOrderStatus(status).forEach(
+//                    x -> orderDetails.add(x)
+//            );
+//        }
+//        return orderDetails;
+//    }
 
     public void markOrderAsDelivered(Integer orderId) {
         OrderDetail orderDetail = orderDao.findById(orderId).get();
@@ -148,7 +162,7 @@ public class OrderDetailsService {
 
     public List<OrderCount> getOrderCountsPerMonth() {
         // Get all orders
-        List<OrderDetail> orders = getAllOrderDetails("All");
+        List<OrderDetail> orders = getAllOrderDetails("All","");
 
         // Create a map to store the count of orders per month
         Map<YearMonth, Long> orderCounts = orders.stream()
@@ -171,7 +185,7 @@ public class OrderDetailsService {
 
     public Long getTotalOrderCount() {
         // Get all orders
-        List<OrderDetail> orders = getAllOrderDetails("All");
+        List<OrderDetail> orders = getAllOrderDetails("All","");
 
         // Return the total number of orders
         return (long) orders.size();
@@ -179,7 +193,7 @@ public class OrderDetailsService {
 
     public Long getNewOrderCount() {
         // Get all orders
-        List<OrderDetail> orders = getAllOrderDetails("All");
+        List<OrderDetail> orders = getAllOrderDetails("All","");
 
         // Get the current date (without time)
         LocalDate today = LocalDate.now();
@@ -196,7 +210,7 @@ public class OrderDetailsService {
 
     public Double getTotalRevenue() {
         // Get all orders
-        List<OrderDetail> orders = getAllOrderDetails("All");
+        List<OrderDetail> orders = getAllOrderDetails("All","");
 
         // Calculate the total revenue for orders with status "placed"
         return orders.stream()
@@ -207,7 +221,7 @@ public class OrderDetailsService {
 
     public List<RevenueCount> getRevenuePerMonth() {
         // Get all orders
-        List<OrderDetail> orders = getAllOrderDetails("All");
+        List<OrderDetail> orders = getAllOrderDetails("All","");
 
         // Calculate the revenue per month for orders with status "placed"
         Map<YearMonth, Double> revenueCounts = orders.stream()
@@ -229,7 +243,7 @@ public class OrderDetailsService {
 
     public Double getNewRevenue() {
         // Get all orders
-        List<OrderDetail> orders = getAllOrderDetails("All");
+        List<OrderDetail> orders = getAllOrderDetails("All","");
 
         // Get the current date (without time)
         LocalDate today = LocalDate.now();
@@ -241,9 +255,6 @@ public class OrderDetailsService {
                 .mapToDouble(order -> order.getOrderQuantity() * order.getProduct().getProductDiscountprice()) // Calculate revenue for each order
                 .sum(); // Sum up the revenues
     }
-
-
-
 
 
 }

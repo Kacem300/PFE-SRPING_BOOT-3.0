@@ -26,19 +26,22 @@ private OrderDetailsService orderDetailsService;
                             @RequestBody OrderInput orderInput) {
         orderDetailsService.placeOrder(orderInput, single);
     }
-    @GetMapping({"/getOrderDetails"})
-//    @PreAuthorize("hasRole('User')")
-    public List<OrderDetail> getOrderDetails() {
-        return orderDetailsService.getOrderDetails();
-    }
-
+//    @GetMapping({"/getOrderDetails"})
+////    @PreAuthorize("hasRole('User')")
+//    public List<OrderDetail> getOrderDetails() {
+//        return orderDetailsService.getOrderDetails();
+//    }
+@GetMapping("/getOrderDetails")
+public List<OrderDetail> getOrderDetails(@RequestParam(required = false) String productName) {
+    return orderDetailsService.getOrderDetails(productName);
+}
 
 
 
     @GetMapping({"/getAllOrderDetails/{status}"})
 //   @PreAuthorize("hasRole('Admin')")
-    public List<OrderDetail> getAllOrderDetails(@PathVariable(name = "status") String status) {
-        return orderDetailsService.getAllOrderDetails(status);
+    public List<OrderDetail> getAllOrderDetails(@PathVariable(name = "status") String status,@RequestParam(name = "searchKeyword", required = false) String searchKeyword) {
+        return orderDetailsService.getAllOrderDetails(status, searchKeyword);
     }
 
     @GetMapping({"/markOrderAsDelivered/{orderId}"})

@@ -13,7 +13,7 @@ public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer OrderId;
-    private String OrderFullName;
+    private String orderFullName;
     private String OrderFullOrder;
     private String orderContactNumber;
     private Integer orderQuantity;
@@ -30,7 +30,7 @@ public class OrderDetail {
 
 
     public OrderDetail(String orderFullName, String orderFullOrder, String orderContactNumber, Integer  orderQuantity , String orderStatus, Double orderAmount, Product product, User user) {
-        OrderFullName = orderFullName;
+        this.orderFullName = orderFullName;
         OrderFullOrder = orderFullOrder;
         this.orderContactNumber = orderContactNumber;
         this.orderQuantity = orderQuantity;
@@ -65,11 +65,11 @@ public class OrderDetail {
     }
 
     public String getOrderFullName() {
-        return OrderFullName;
+        return orderFullName;
     }
 
     public void setOrderFullName(String orderFullName) {
-        OrderFullName = orderFullName;
+        orderFullName = orderFullName;
     }
 
     public String getOrderFullOrder() {

@@ -10,7 +10,9 @@ import java.util.Set;
 @Entity
 public class User {
     @Id
+
     private String userName;
+    //    private String userId;
     private String userEmail;
     private String userFirstName;
     private String userLastname;
@@ -36,6 +38,14 @@ public class User {
 
     private Boolean enabled;
 
+//    public String getUserId() {
+//        return userId;
+//    }
+//
+//    public void setUserId(String userId) {
+//        userId = userId;
+//    }
+
     public Boolean getEnabled() {
         return enabled;
     }
@@ -46,6 +56,7 @@ public class User {
 //    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 //    @JoinColumn(name = "userImage")
 //    private imageModel userImage;
+
 
 
     public imageModel getUserImage() {
